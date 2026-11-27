@@ -1,0 +1,20 @@
+sequenceDiagram
+  autonumber
+  actor A as Администратор
+  participant S as Игровой сервер
+  participant HH as HandHistory
+  participant EF as ExportFilter
+  participant PP as PlayerProfile
+  participant LG as LogEntry
+  A->>S: вход в административный интерфейс
+  A->>S: viewHand(handId)
+  S->>HH: чтение записи раздачи
+  HH-->>A: полный протокол, карты всех участников, отметки времени
+  A->>S: configureExportFilter(filter)
+  S->>EF: применение критериев
+  S-->>A: выгрузка выборки в файл
+  opt нарушение подтверждено
+    A->>S: banPlayer(player)
+    S->>PP: isBanned = true
+    S->>LG: запись в журнал аудита
+  end

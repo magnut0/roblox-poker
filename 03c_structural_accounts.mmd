@@ -1,0 +1,79 @@
+classDiagram
+direction LR
+class User {
+  <<abstract>>
+  -int userId
+  -String displayName
+}
+class Guest
+class Player
+class Administrator {
+  +viewHand(handId String) HandHistory
+  +banPlayer(player Player) void
+  +closeTable(table PokerTable) void
+  +configureExportFilter(filter ExportFilter) void
+}
+class PlayerProfile {
+  -int balance
+  -Date lastBonusDate
+  -Date ageConfirmedDate
+  -boolean isBanned
+  +withdraw(amount int, reason String) boolean
+  +deposit(amount int, reason String) void
+}
+class PlayerStatistics {
+  -int handsPlayed
+  -int handsWon
+  -double vpip
+  -double pfr
+  -int netResult
+}
+class ChipTransaction {
+  -int amount
+  -String reason
+  -String handId
+  -Date timestamp
+}
+class ProfileStore {
+  +load(userId int) PlayerProfile
+  +create(userId int, name String) PlayerProfile
+  +save(profile PlayerProfile) boolean
+  +writeBackup(profile PlayerProfile) boolean
+}
+class BackupJob {
+  +run() void
+  +verify() boolean
+}
+class WebhookNotifier {
+  +notifyAdmin(message String) void
+}
+class HandHistory {
+  -int retentionMonths = 12
+  -List~Player~ participants
+  -Map potDistribution
+}
+class LogEntry {
+  -LogLevel level
+  -int userId
+  -String tableId
+  -String event
+  -Date timestamp
+}
+class ExportFilter {
+  -String category
+  -Map criteria
+  -boolean isActive
+}
+User <|-- Guest
+User <|-- Player
+User <|-- Administrator
+Player "1" *-- "1" PlayerProfile
+PlayerProfile "1" *-- "1" PlayerStatistics
+PlayerProfile "1" --> "*" ChipTransaction : журнал операций
+ProfileStore ..> PlayerProfile : загружает и сохраняет
+BackupJob ..> ProfileStore
+BackupJob ..> WebhookNotifier : при ошибке
+Administrator "1" -- "*" ExportFilter : настраивает
+Administrator ..> LogEntry : аудит
+Administrator ..> HandHistory : просматривает
+ChipTransaction ..> HandHistory : ссылается на

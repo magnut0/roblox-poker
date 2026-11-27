@@ -1,0 +1,31 @@
+sequenceDiagram
+  autonumber
+  actor P as Игрок
+  participant S as Игровой сервер
+  participant T as PokerTable
+  participant H as Hand
+  participant E as HandEvaluator
+  participant PP as PlayerProfile
+  P->>S: выбор стола в лобби
+  S->>T: joinAsSpectator()
+  S-->>P: состояние стола (режим наблюдателя)
+  P->>S: sitDown(table, buyIn)
+  S->>PP: withdraw(buyIn, "BUY_IN")
+  S->>T: occupySeat(player, buyIn)
+  T-->>P: Seat
+  T->>H: startHand()
+  H->>H: postBlinds(), dealHoleCards()
+  loop каждый круг торговли
+    P->>S: performAction(action)
+    S->>H: applyAction(action)
+    H-->>S: действие принято или отклонено
+    S->>T: broadcastState()
+    H->>H: advanceStage()
+  end
+  H->>H: showdown()
+  H->>E: evaluate(hole, community)
+  E-->>H: HandRank
+  H->>H: determineWinners(), distributePot()
+  H->>PP: обновление статистики и сохранение истории
+  P->>S: leaveTable()
+  S->>PP: deposit(stack, "STACK_RETURN")

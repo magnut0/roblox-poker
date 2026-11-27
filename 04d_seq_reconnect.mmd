@@ -1,0 +1,21 @@
+sequenceDiagram
+  autonumber
+  actor P as Игрок
+  participant S as Игровой сервер
+  participant SE as Seat
+  participant H as Hand
+  participant T as PokerTable
+  P--xS: соединение потеряно
+  S->>SE: markDisconnected()
+  S->>T: broadcastState()
+  alt наступил ход игрока и время истекло
+    H->>H: applyAction(автоматические check или fold)
+  end
+  alt связь восстановлена за 60 секунд
+    P->>S: повторное подключение и аутентификация
+    S->>SE: restore()
+    S-->>P: полное состояние стола с карманными картами
+  else прошло 60 секунд
+    S->>SE: setSittingOut()
+    S->>T: broadcastState()
+  end

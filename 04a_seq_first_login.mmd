@@ -1,0 +1,22 @@
+sequenceDiagram
+  autonumber
+  actor U as Пользователь
+  participant C as Клиент Roblox
+  participant S as Игровой сервер
+  participant PS as ProfileStore
+  participant PP as PlayerProfile
+  participant L as Lobby
+  U->>C: запуск игры
+  C->>S: подключение (userId и displayName от платформы)
+  S->>PS: load(userId)
+  PS-->>S: профиль не найден
+  S->>PS: create(userId, displayName)
+  PS->>PP: deposit(10000, "STARTER_PACK")
+  PS-->>S: новый PlayerProfile с пустой статистикой
+  S->>C: запрос подтверждения возраста
+  C->>S: возраст 18 лет подтверждён
+  S->>PP: confirmAge()
+  S->>PS: save(profile)
+  S->>L: getTableList("")
+  L-->>S: список PokerTable
+  S-->>C: показать лобби

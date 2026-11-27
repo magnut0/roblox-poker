@@ -1,0 +1,19 @@
+sequenceDiagram
+  autonumber
+  actor P as Игрок
+  participant S as Игровой сервер
+  participant I as ServerInstance
+  participant T as PokerTable
+  participant L as Lobby
+  P->>S: createTable(params)
+  S->>I: createTable(params)
+  I->>I: проверка лимита в 4 стола
+  I->>T: создание PokerTable(params)
+  S->>T: occupySeat(creator, buyIn)
+  S->>L: публикация стола в лобби
+  alt занято не менее 2 мест
+    T->>T: startHand()
+  else нет игроков 15 минут
+    T->>T: close()
+    T->>L: удаление стола из лобби
+  end

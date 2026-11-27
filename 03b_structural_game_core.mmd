@@ -1,0 +1,68 @@
+classDiagram
+direction LR
+class Card {
+  -Suit suit
+  -Rank rank
+}
+class Deck {
+  -List~Card~ cards
+  +shuffle() void
+  +draw() Card
+}
+class HoleCards {
+  -boolean isRevealed
+  +isVisibleTo(player Player) boolean
+}
+class HandEvaluator {
+  +evaluate(hole HoleCards, community List~Card~) HandRank
+  +compare(a HandRank, b HandRank) int
+}
+class HandRank {
+  -HandCategory category
+  -List~Rank~ kickers
+}
+class Pot {
+  -int amount
+  -boolean isMain
+  +add(amount int) void
+}
+class PlayerAction {
+  -ActionType type
+  -int amount
+  -Date timestamp
+  -boolean isAutomatic
+}
+class Hand {
+  -String id
+  -HandStage stage
+  -int dealerPosition
+  +postBlinds() void
+  +dealHoleCards() void
+  +applyAction(action PlayerAction) boolean
+  +advanceStage() void
+  +showdown() void
+  +distributePot() void
+}
+class Seat {
+  -int number
+  -int stack
+  -SeatStatus status
+}
+class PokerTable {
+  -String id
+  -TableStatus status
+  +startHand() Hand
+}
+Deck "1" *-- "52" Card
+HoleCards "1" o-- "2" Card
+Hand "1" *-- "1" Deck
+Hand "1" *-- "*" HoleCards
+Hand "1" o-- "0..5" Card : общие карты
+Hand "1" *-- "1..*" Pot
+Hand "1" *-- "*" PlayerAction
+Hand ..> HandEvaluator : использует
+HandEvaluator ..> HandRank : создаёт
+HoleCards "*" --> "1" Seat : принадлежат месту
+PlayerAction "*" --> "1" Seat : совершается
+PokerTable "1" *-- "2..9" Seat
+PokerTable "1" -- "0..1" Hand : текущая

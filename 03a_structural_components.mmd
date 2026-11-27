@@ -1,0 +1,43 @@
+flowchart TB
+  subgraph CLIENT["Клиент Roblox"]
+    LobbyUI["LobbyUI<br/>интерфейс лобби"]
+    TableUI["TableUI<br/>интерфейс стола"]
+    ChatUI["ChatUI<br/>интерфейс чата"]
+    AdminUI["AdminUI<br/>интерфейс администратора"]
+  end
+  subgraph SERVER["Игровой сервер"]
+    Net["RemoteEvent<br/>сетевой шлюз"]
+    LobbyService["LobbyService<br/>сервис лобби"]
+    TableService["TableService<br/>сервис столов"]
+    GameEngine["GameEngine<br/>игровой движок: Hand, Deck, Pot, HandEvaluator"]
+    ChatService["ChatService<br/>сервис чата"]
+    ProfileService["ProfileService<br/>сервис профилей"]
+    AdminService["AdminService<br/>сервис администрирования"]
+    AuditLogger["AuditLogger<br/>журнал аудита"]
+    BackupJob["BackupJob<br/>резервное копирование"]
+  end
+  subgraph PLATFORM["Платформа Roblox и внешние сервисы"]
+    Auth["Аутентификация платформы"]
+    TextFilter["TextService<br/>фильтрация текста"]
+    DataStore[("DataStoreService<br/>основной и резервный ключи")]
+    Webhook["Внешний вебхук"]
+  end
+  LobbyUI --> Net
+  TableUI --> Net
+  ChatUI --> Net
+  AdminUI --> Net
+  Net --> LobbyService
+  Net --> TableService
+  Net --> ChatService
+  Net --> AdminService
+  TableService --> GameEngine
+  GameEngine --> ProfileService
+  LobbyService --> ProfileService
+  AdminService --> AuditLogger
+  TableService --> AuditLogger
+  ChatService --> TextFilter
+  Net --> Auth
+  ProfileService --> DataStore
+  GameEngine --> DataStore
+  BackupJob --> DataStore
+  BackupJob --> Webhook

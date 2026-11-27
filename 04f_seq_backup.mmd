@@ -1,0 +1,17 @@
+sequenceDiagram
+  autonumber
+  participant SC as Планировщик
+  participant B as BackupJob
+  participant PS as ProfileStore
+  participant LG as LogEntry
+  participant W as WebhookNotifier
+  actor A as Администратор
+  SC->>B: run() по расписанию
+  B->>PS: writeBackup(profile) для каждого игрока
+  PS-->>B: успех или ошибка записи
+  B->>LG: запись результата в журнал
+  alt запись не удалась
+    B->>W: notifyAdmin(message)
+    W-->>A: уведомление через вебхук
+  end
+  Note over A,PS: Раз в месяц на тестовом месте verify() сверяет резервные снимки с основными записями

@@ -1,0 +1,278 @@
+classDiagram
+direction TB
+class User {
+  <<abstract>>
+  -int userId
+  -String displayName
+  +viewLobby() List~PokerTable~
+  +joinAsSpectator(table PokerTable) void
+}
+class Guest
+class Player {
+  +createTable(params TableParams) PokerTable
+  +sitDown(table PokerTable, buyIn int) Seat
+  +performAction(action PlayerAction) void
+  +topUpStack(amount int) void
+  +leaveTable() void
+  +sendMessage(text String) void
+}
+class Administrator {
+  +viewHand(handId String) HandHistory
+  +banPlayer(player Player) void
+  +closeTable(table PokerTable) void
+  +configureExportFilter(filter ExportFilter) void
+}
+class PlayerProfile {
+  -int balance
+  -Date lastBonusDate
+  -Date ageConfirmedDate
+  -boolean isBanned
+  +confirmAge() void
+  +withdraw(amount int, reason String) boolean
+  +deposit(amount int, reason String) void
+}
+class PlayerStatistics {
+  -int handsPlayed
+  -int handsWon
+  -double vpip
+  -double pfr
+  -int netResult
+  +update(hand Hand) void
+}
+class ChipTransaction {
+  -int amount
+  -String reason
+  -String handId
+  -Date timestamp
+}
+class ProfileStore {
+  +load(userId int) PlayerProfile
+  +create(userId int, name String) PlayerProfile
+  +save(profile PlayerProfile) boolean
+  +writeBackup(profile PlayerProfile) boolean
+}
+class BackupJob {
+  +run() void
+  +verify() boolean
+}
+class WebhookNotifier {
+  +notifyAdmin(message String) void
+}
+class ServerInstance {
+  -int maxUsers = 30
+  -int maxTables = 4
+  +admitPlayer(user User) boolean
+  +createTable(params TableParams) PokerTable
+}
+class Lobby {
+  +getTableList(filter String) List~PokerTable~
+  +redirectToInstance(user User) void
+}
+class TableParams {
+  -String name
+  -int seatCount
+  -int smallBlind
+  -int bigBlind
+  -int minBuyIn
+  -int maxBuyIn
+  -int turnDuration
+  -String password
+}
+class PokerTable {
+  -String id
+  -TableStatus status
+  -Date lastActivityTime
+  +occupySeat(player Player, buyIn int) Seat
+  +freeSeat(seat Seat) void
+  +startHand() Hand
+  +broadcastState() void
+  +close() void
+}
+class Seat {
+  -int number
+  -int stack
+  -int timeBank
+  -SeatStatus status
+  +topUp(amount int) void
+  +markDisconnected() void
+  +restore() void
+  +setSittingOut() void
+}
+class Hand {
+  -String id
+  -HandStage stage
+  -int dealerPosition
+  -String deckHash
+  -Date startTime
+  +postBlinds() void
+  +dealHoleCards() void
+  +applyAction(action PlayerAction) boolean
+  +advanceStage() void
+  +showdown() void
+  +determineWinners() List~Player~
+  +distributePot() void
+}
+class Deck {
+  -List~Card~ cards
+  +shuffle() void
+  +draw() Card
+}
+class Card {
+  -Suit suit
+  -Rank rank
+}
+class HoleCards {
+  -boolean isRevealed
+  +isVisibleTo(player Player) boolean
+}
+class PlayerAction {
+  -ActionType type
+  -int amount
+  -Date timestamp
+  -boolean isAutomatic
+}
+class Pot {
+  -int amount
+  -boolean isMain
+  +add(amount int) void
+}
+class HandEvaluator {
+  +evaluate(hole HoleCards, community List~Card~) HandRank
+  +compare(a HandRank, b HandRank) int
+}
+class HandRank {
+  -HandCategory category
+  -List~Rank~ kickers
+}
+class ChatMessage {
+  -String text
+  -Date sentAt
+  +filter() String
+}
+class HandHistory {
+  -int retentionMonths = 12
+  -List~Player~ participants
+  -List~Card~ communityCards
+  -Map potDistribution
+}
+class LogEntry {
+  -LogLevel level
+  -int userId
+  -String tableId
+  -String event
+  -Date timestamp
+}
+class ExportFilter {
+  -String category
+  -Map criteria
+  -boolean isActive
+}
+class HandStage {
+  <<enumeration>>
+  BLINDS
+  PREFLOP
+  FLOP
+  TURN
+  RIVER
+  SHOWDOWN
+}
+class ActionType {
+  <<enumeration>>
+  FOLD
+  CHECK
+  CALL
+  BET
+  RAISE
+  ALL_IN
+}
+class SeatStatus {
+  <<enumeration>>
+  ACTIVE
+  DISCONNECTED
+  SITTING_OUT
+}
+class TableStatus {
+  <<enumeration>>
+  WAITING
+  RUNNING
+  CLOSED
+}
+class Suit {
+  <<enumeration>>
+  HEARTS
+  DIAMONDS
+  CLUBS
+  SPADES
+}
+class Rank {
+  <<enumeration>>
+  TWO_to_TEN
+  JACK
+  QUEEN
+  KING
+  ACE
+}
+class HandCategory {
+  <<enumeration>>
+  HIGH_CARD
+  PAIR
+  TWO_PAIR
+  THREE_OF_A_KIND
+  STRAIGHT
+  FLUSH
+  FULL_HOUSE
+  FOUR_OF_A_KIND
+  STRAIGHT_FLUSH
+  ROYAL_FLUSH
+}
+class LogLevel {
+  <<enumeration>>
+  INFO
+  WARNING
+  ERROR
+  CRITICAL
+}
+User <|-- Guest
+User <|-- Player
+User <|-- Administrator
+Player "1" *-- "1" PlayerProfile : имеет
+PlayerProfile "1" *-- "1" PlayerStatistics : содержит
+PlayerProfile "1" --> "*" ChipTransaction : журнал операций
+ProfileStore ..> PlayerProfile : загружает и сохраняет
+BackupJob ..> ProfileStore : использует
+BackupJob ..> WebhookNotifier : при ошибке
+Player "1" -- "0..3" PokerTable : создал
+Player "1" -- "0..4" Seat : занимает
+PokerTable "1" *-- "2..9" Seat : состоит из
+PokerTable "1" o-- "0..*" User : наблюдатели
+PokerTable "1" -- "0..1" Hand : текущая
+PokerTable "1" *-- "*" ChatMessage : чат
+ChatMessage "*" --> "1" Player : автор
+PokerTable ..> TableParams : настраивается
+Hand "1" *-- "1" Deck
+Deck "1" *-- "52" Card
+Hand "1" o-- "0..5" Card : общие карты
+Hand "1" *-- "*" HoleCards
+HoleCards "1" o-- "2" Card
+HoleCards "*" --> "1" Seat : принадлежат месту
+Hand "1" *-- "*" PlayerAction
+PlayerAction "*" --> "1" Seat : совершается
+Hand "1" *-- "1..*" Pot : основной и побочные
+Hand ..> HandEvaluator : использует
+HandEvaluator ..> HandRank : создаёт
+Hand "1" -- "0..1" HandHistory : сохраняется как
+Administrator "1" -- "*" ExportFilter : настраивает
+Administrator ..> LogEntry : аудит
+PokerTable ..> LogEntry : пишет события
+ChipTransaction ..> HandHistory : ссылается на
+Lobby "1" o-- "*" PokerTable : перечисляет
+ServerInstance "1" *-- "0..4" PokerTable : размещает
+ServerInstance "1" *-- "1" Lobby
+Hand --> HandStage
+PokerTable --> TableStatus
+PlayerAction --> ActionType
+Seat --> SeatStatus
+Card --> Suit
+Card --> Rank
+HandRank --> HandCategory
+LogEntry --> LogLevel
