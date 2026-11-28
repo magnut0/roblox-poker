@@ -1,0 +1,22 @@
+stateDiagram-v2
+  state "Постановка блайндов (BLINDS)" as Blinds
+  state "Префлоп (PREFLOP)" as Preflop
+  state "Флоп (FLOP)" as Flop
+  state "Тёрн (TURN)" as Turn
+  state "Ривер (RIVER)" as River
+  state "Вскрытие (SHOWDOWN)" as Showdown
+  state "Распределение банка" as Settlement
+  state "Раздача завершена" as Finished
+  [*] --> Blinds : startHand()
+  Blinds --> Preflop : блайнды поставлены, карты розданы
+  Preflop --> Flop : круг торговли завершён
+  Flop --> Turn : круг торговли завершён
+  Turn --> River : круг торговли завершён
+  River --> Showdown : круг торговли завершён
+  Preflop --> Settlement : остался один игрок
+  Flop --> Settlement : остался один игрок
+  Turn --> Settlement : остался один игрок
+  River --> Settlement : остался один игрок
+  Showdown --> Settlement : победители определены
+  Settlement --> Finished : distributePot(), история сохранена
+  Finished --> [*]

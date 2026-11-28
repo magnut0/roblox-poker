@@ -1,0 +1,14 @@
+stateDiagram-v2
+  state "Свободно" as Free
+  state "Активно (ACTIVE)" as Active
+  state "Нет связи (DISCONNECTED)" as Disconnected
+  state "Вне игры (SITTING_OUT)" as SittingOut
+  [*] --> Free
+  Free --> Active : occupySeat() с бай-ином
+  Active --> Disconnected : markDisconnected(), связь потеряна
+  Disconnected --> Active : restore(), связь восстановлена за 60 с
+  Disconnected --> SittingOut : setSittingOut(), прошло 60 с
+  SittingOut --> Active : игрок вернулся
+  Active --> Free : leaveTable()
+  SittingOut --> Free : leaveTable() или стек равен 0
+  Free --> [*]

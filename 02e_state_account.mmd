@@ -1,0 +1,10 @@
+stateDiagram-v2
+  state "Профиля нет" as NoProfile
+  state "Профиль создан" as ProfileCreated
+  state "Активна" as Active
+  state "Заблокирована" as Banned
+  [*] --> NoProfile : первый запуск
+  NoProfile --> ProfileCreated : ProfileStore.create(), начислено 10000 фишек
+  ProfileCreated --> Active : confirmAge(), возраст 18 лет подтверждён
+  Active --> Banned : banPlayer()
+  Banned --> Active : разблокировка администратором

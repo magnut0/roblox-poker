@@ -1,0 +1,12 @@
+stateDiagram-v2
+  state "Ожидание игроков (WAITING)" as Waiting
+  state "Идёт игра (RUNNING)" as Running
+  state "Закрыт (CLOSED)" as Closed
+  [*] --> Waiting : стол создан
+  Waiting --> Running : занято не менее 2 мест
+  Running --> Running : следующая раздача
+  Running --> Waiting : игроков меньше двух
+  Waiting --> Closed : close(), нет игроков 15 минут
+  Running --> Closed : close(), закрыт администратором
+  Waiting --> Closed : close(), закрыт администратором
+  Closed --> [*]

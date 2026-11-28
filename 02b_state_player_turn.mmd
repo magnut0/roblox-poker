@@ -1,0 +1,15 @@
+stateDiagram-v2
+  state "Ожидание действия" as WaitingForAction
+  state "Использование банка времени" as UsingTimeBank
+  state "Проверка действия" as Validating
+  state "Автоматическое действие" as AutoAction
+  state "Действие применено" as Applied
+  [*] --> WaitingForAction : начало хода
+  WaitingForAction --> Validating : действие получено
+  WaitingForAction --> UsingTimeBank : время хода истекло
+  UsingTimeBank --> Validating : действие получено
+  UsingTimeBank --> AutoAction : банк времени исчерпан
+  Validating --> Applied : действие допустимо
+  Validating --> WaitingForAction : действие отклонено
+  AutoAction --> Applied : check или fold
+  Applied --> [*] : broadcastState()
